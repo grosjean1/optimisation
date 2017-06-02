@@ -1,0 +1,84 @@
+#---
+# (c) Hacene Ouzia, UPMC 2016
+#-------------------------------
+
+reset; 
+
+#---- Options 
+
+option solver gurobi; 
+option gurobi_options "timelim=7200";
+ 
+#----Output filename  
+param OUTPUTFILE symbolic; 
+let OUTPUTFILE := 'mod/logsampl_L.txt';
+
+#---- Instances 
+param nbrInstances := 3; 
+
+set Instances default {};
+let Instances := {"dat/a05100.dat","dat/a05200.dat","dat/b05100.dat"}; 
+
+#---- For logs 
+param Nrows {1 .. nbrInstances}; 
+param Ncols {1 .. nbrInstances}; 
+
+param Filenames {1 .. nbrInstances}; 
+
+param Opt {1 .. nbrInstances}; 
+param Time {1 .. nbrInstances};
+
+param LPOpt {1 .. nbrInstances}; 
+param LPTime {1 .. nbrInstances};
+
+
+#---- Models and problems
+model mod/L/L.mod; 
+
+problem MIP: x, capacity1, capacity2, capacity3, Objective;
+
+param NumInstance integer default 0; 
+
+#---- Log headings 
+printf "# Experience : Resolution L et sa relaxation LP \n" >> (OUTPUTFILE); 
+printf "# Solver     : gurobi \n" >> (OUTPUTFILE); 
+printf "# Maxtime    : 2 heures \n\n" >> (OUTPUTFILE); 
+
+printf "#   %4s %4s %12s %12s %12s %12s \n", 'M', 'N', 'OPT', 'TIME', 'LPOPT','LPTIME' >> (OUTPUTFILE);
+
+#---- Solving problems 
+
+for{file in Instances}{
+   
+   let NumInstance := NumInstance + 1;  
+ 	
+   if NumInstance > 1 then reset data M, N, c, a, b; 
+   data (file);
+   
+   let Nrows[NumInstance] := M; 
+   let Ncols[NumInstance] := N; 
+
+   #------
+   # Solve the integer problem
+   #----------------------------
+    
+   solve MIP; printf "MIP problem solved ... %12.3f\n\n",Objective; 
+   
+   let    Opt[NumInstance] := Objective.val; 
+   let   Time[NumInstance] := _solve_time;
+    
+   #---- 
+   # Solve the continuous relaxation
+   #---------------------------------
+   option relax_integrality 1; 
+   solve MIP;  printf "Continuous relaxation solved ... %12.3f \n\n",Objective;
+   option relax_integrality 0; 
+
+   let LPOpt[NumInstance] := Objective.val; 
+   let LPTime[NumInstance] := _solve_time;  
+   
+   #-- Logs ...  
+   printf "   %4d %4d  %12.3f %12.3f %12.3f %12.3f \n", Nrows[NumInstance], Ncols[NumInstance], Opt[NumInstance], Time[NumInstance], LPOpt[NumInstance],LPTime[NumInstance] >> (OUTPUTFILE);
+}
+
+printf "\n" >> (OUTPUTFILE); 

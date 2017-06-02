@@ -1,0 +1,29 @@
+# Experience : Resolution with GA
+#################################
+
+#Jeu de donnée 1:
+#m	5	
+#n	100
+z	3429 (3212 pour Patternsearch)
+
+
+#Jeu de donnée 2:
+#m	5
+#n	100
+z	2951
+
+#Jeu de donnée 3:
+#m	5
+#n	100
+z	3319
+
+#Jeu de donnée 4:
+#m	5
+#n	100
+z	6117
+
+#Jeu de donnée 5:
+#m	5	
+#n	100	
+z	30856
+
